@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unified Task Manager Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+            --bg-body: #f3f4f6;
+            --bg-card: #ffffff;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --primary: #4f46e5;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+
+            /* Quadrant Colors */
+            --q1-bg: #fee2e2;
+            --q1-border: #fca5a5;
+            --q1-text: #991b1b;
+            --q2-bg: #d1fae5;
+            --q2-border: #6ee7b7;
+            --q2-text: #065f46;
+            --q3-bg: #fef3c7;
+            --q3-border: #fcd34d;
+            --q3-text: #92400e;
+            --q4-bg: #e0f2fe;
+            --q4-border: #7dd3fc;
+            --q4-text: #075985;
+
+            --glass-bg: rgba(255, 255, 255, 0.95);
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Tabs & Header */
+        .app-header {
+            width: 100%;
+            max-width: 900px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-weight: 700;
+            font-size: 20px;
+            color: var(--text-primary);
+        }
+
+        .view-switcher {
+            background: #e5e7eb;
+            padding: 4px;
+            border-radius: 12px;
+            display: flex;
+            gap: 4px;
+        }
+
+        .tab-btn {
+            border: none;
+            background: transparent;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Input Form */
+        .input-panel {
+            background: var(--glass-bg);
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: var(--shadow-md);
+            width: 100%;
+            max-width: 900px;
+            margin-bottom: 32px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            backdrop-filter: blur(8px);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .form-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        input,
+        select {
+            padding: 10px 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-family: var(--font-main);
+            font-size: 14px;
+            outline: none;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .btn-add {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0 24px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: auto;
+            height: 40px;
+            transition: transform 0.1s;
+        }
+
+        .btn-add:hover {
+            background: #4338ca;
+        }
+
+        .btn-add:active {
+            transform: scale(0.98);
+        }
+
+        /* Views */
+        .view-container {
+            width: 100%;
+            max-width: 900px;
+            display: none;
+        }
+
+        .view-container.active {
+            display: block;
+        }
+
+        /* Matrix Styles */
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .quadrant {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 16px;
+            min-height: 250px;
+            box-shadow: var(--shadow-sm);
+            border-top: 6px solid #ccc;
+        }
+
+        .Q1 {
+            border-color: var(--q1-border);
+        }
+
+        .Q2 {
+            border-color: var(--q2-border);
+        }
+
+        .Q3 {
+            border-color: var(--q3-border);
+        }
+
+        .Q4 {
+            border-color: var(--q4-border);
+        }
+
+        .q-header {
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+        }
+
+        /* List Styles */
+        .month-group {
+            margin-bottom: 30px;
+        }
+
+        .month-header {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        /* Task Card */
+        .task-card {
+            background: white;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #f3f4f6;
+            margin-bottom: 8px;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+        .task-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .task-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .task-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .task-meta {
+            font-size: 11px;
+            color: var(--text-secondary);
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .badge {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 10px;
+            text-transform: uppercase;
+        }
+
+        .badge-Q1 {
+            background: var(--q1-bg);
+            color: var(--q1-text);
+        }
+
+        .badge-Q2 {
+            background: var(--q2-bg);
+            color: var(--q2-text);
+        }
+
+        .badge-Q3 {
+            background: var(--q3-bg);
+            color: var(--q3-text);
+        }
+
+        .badge-Q4 {
+            background: var(--q4-bg);
+            color: var(--q4-text);
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .action-btn {
+            background: #f3f4f6;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: var(--text-secondary);
+            transition: background 0.2s;
+        }
+
+        .action-btn:hover {
+            background: #e5e7eb;
+            color: var(--text-primary);
+        }
+
+        .btn-done:hover {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-link:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .completed .task-title {
+            text-decoration: line-through;
+            color: var(--text-secondary);
+        }
+
+        .completed {
+            opacity: 0.6;
+        }
+
+        @media (max-width: 768px) {
+            .matrix-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .input-panel {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app-header">
+        <div class="logo">🚀 UnifiedTask Pro</div>
+        <div class="view-switcher">
+            <button class="tab-btn active" onclick="switchView('matrix')">Matrix</button>
+            <button class="tab-btn" onclick="switchView('list')">List</button>
+        </div>
+    </div>
+
+    <!-- Input Form -->
+    <div class="input-panel">
+        <div class="form-group" style="flex: 2;">
+            <label>Task Name</label>
+            <input id="inp-title" placeholder="What needs to be done?">
+        </div>
+        <div class="form-group">
+            <label>Deadline</label>
+            <input type="datetime-local" id="inp-deadline">
+        </div>
+        <div class="form-group">
+            <label>Quadrant</label>
+            <select id="inp-quadrant">
+                <option value="Q1">Q1: Urgent & Important</option>
+                <option value="Q2">Q2: Not Urgent & Important</option>
+                <option value="Q3">Q3: Urgent & Not Important</option>
+                <option value="Q4">Q4: Not Urgent & Not Important</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Link (Optional)</label>
+            <input id="inp-link" placeholder="https://...">
+        </div>
+        <button class="btn-add" onclick="addTask()">Add</button>
+    </div>
+
+    <!-- MATRIX VIEW -->
+    <div id="view-matrix" class="view-container active">
+        <div class="matrix-grid">
+            <div class="quadrant Q1">
+                <div class="q-header"><span style="color:var(--q1-text)">🔥 Do Now</span></div>
+                <div id="list-Q1"></div>
+            </div>
+            <div class="quadrant Q2">
+                <div class="q-header"><span style="color:var(--q2-text)">🌱 Schedule</span></div>
+                <div id="list-Q2"></div>
+            </div>
+            <div class="quadrant Q3">
+                <div class="q-header"><span style="color:var(--q3-text)">⚡ Delegate</span></div>
+                <div id="list-Q3"></div>
+            </div>
+            <div class="quadrant Q4">
+                <div class="q-header"><span style="color:var(--q4-text)">🧊 Delete</span></div>
+                <div id="list-Q4"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LIST VIEW -->
+    <div id="view-list" class="view-container">
+        <div id="list-content"></div>
+        <hr style="margin: 40px 0; border: 0; border-top: 1px dashed #ccc;">
+        <div class="month-header" style="font-size: 16px; color: var(--text-secondary)">🗄️ Archive</div>
+        <div id="archive-content"></div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'unified_task_manager';
+        let tasks = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        let currentView = 'matrix';
+
+        // Init
+        if ("Notification" in window) Notification.requestPermission();
+        setInterval(checkReminders, 60000);
+        render();
+
+        function switchView(view) {
+            currentView = view;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.view-container').forEach(c => c.classList.remove('active'));
+
+            // Activate
+            document.querySelector(`.tab-btn[onclick="switchView('${view}')"]`).classList.add('active');
+            document.getElementById(`view-${view}`).classList.add('active');
+            render();
+        }
+
+        function addTask() {
+            const title = document.getElementById('inp-title').value.trim();
+            const deadline = document.getElementById('inp-deadline').value;
+            const quadrant = document.getElementById('inp-quadrant').value;
+            const link = document.getElementById('inp-link').value.trim();
+
+            if (!title || !deadline) return alert("Task name and deadline are required!");
+
+            tasks.push({
+                id: crypto.randomUUID(),
+                title,
+                deadline,
+                quadrant,
+                link,
+                completed: false,
+                reminded: false
+            });
+
+            saveAndRender();
+
+            // Reset inputs
+            document.getElementById('inp-title').value = '';
+            document.getElementById('inp-link').value = '';
+        }
+
+        function toggleComplete(id) {
+            const t = tasks.find(x => x.id === id);
+            if (t) t.completed = !t.completed;
+            saveAndRender();
+        }
+
+        function recurTask(id, type) {
+            const t = tasks.find(x => x.id === id);
+            if (!t) return;
+
+            const oldDate = new Date(t.deadline);
+            let newDate = new Date(oldDate);
+
+            if (type === 'week') newDate.setDate(newDate.getDate() + 7);
+            if (type === 'month') newDate.setMonth(newDate.getMonth() + 1);
+
+            tasks.push({
+                ...t,
+                id: crypto.randomUUID(),
+                deadline: newDate.toISOString().slice(0, 16),
+                completed: false,
+                reminded: false
+            });
+            saveAndRender();
+        }
+
+        function deleteTask(id) {
+            if (confirm("Delete this task?")) {
+                tasks = tasks.filter(t => t.id !== id);
+                saveAndRender();
+            }
+        }
+
+        function saveAndRender() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+            render();
+        }
+
+        function render() {
+            if (currentView === 'matrix') renderMatrix();
+            else renderList();
+        }
+
+        function renderMatrix() {
+            ['Q1', 'Q2', 'Q3', 'Q4'].forEach(q => {
+                const container = document.getElementById(`list-${q}`);
+                container.innerHTML = '';
+                const filtered = tasks.filter(t => t.quadrant === q && !t.completed).sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
+
+                filtered.forEach(t => container.appendChild(createCard(t)));
+            });
+        }
+
+        function renderList() {
+            const listContainer = document.getElementById('list-content');
+            const archiveContainer = document.getElementById('archive-content');
+            listContainer.innerHTML = '';
+            archiveContainer.innerHTML = '';
+
+            const now = new Date();
+            const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+            // Group by Month
+            const grouped = {};
+            tasks.sort((a, b) => new Date(a.deadline) - new Date(b.deadline)).forEach(t => {
+                const d = new Date(t.deadline);
+                const k = d.toLocaleString('default', { month: 'long', year: 'numeric' });
+                if (!grouped[k]) grouped[k] = { date: d, tasks: [] };
+                grouped[k].tasks.push(t);
+            });
+
+            Object.values(grouped).forEach(group => {
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'month-group';
+                groupDiv.innerHTML = `<div class="month-header">${group.tasks[0]?.deadline ? new Date(group.tasks[0].deadline).toLocaleString('default', { month: 'long', year: 'numeric' }) : 'Tasks'}</div>`;
+
+                group.tasks.forEach(t => groupDiv.appendChild(createCard(t)));
+
+                // Archive logic: If month is strictly in past
+                // Simple logic: if group date month < current month
+                const groupDate = new Date(group.tasks[0].deadline);
+                const isPastMonth = groupDate < startOfCurrentMonth;
+
+                if (isPastMonth) archiveContainer.appendChild(groupDiv);
+                else listContainer.appendChild(groupDiv);
+            });
+        }
+
+        function createCard(t) {
+            const div = document.createElement('div');
+            div.className = `task-card ${t.completed ? 'completed' : ''}`;
+            const dateStr = new Date(t.deadline).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+            div.innerHTML = `
+                <div class="task-info">
+                    <div class="task-title">
+                        ${t.title}
+                        ${t.link ? `<a href="${t.link}" target="_blank" style="text-decoration:none">🔗</a>` : ''}
+                    </div>
+                    <div class="task-meta">
+                        <span>⏰ ${dateStr}</span>
+                        <span class="badge badge-${t.quadrant}">${t.quadrant}</span>
+                    </div>
+                </div>
+                <div class="task-actions">
+                    <button class="action-btn btn-done" onclick="toggleComplete('${t.id}')" title="Done">✔</button>
+                    <button class="action-btn" onclick="recurTask('${t.id}', 'week')" title="+1 Week">📅</button>
+                    ${t.completed ? `<button class="action-btn" onclick="deleteTask('${t.id}')" title="Delete">🗑</button>` : ''}
+                </div>
+            `;
+            return div;
+        }
+
+        function checkReminders() {
+            const now = new Date();
+            let changed = false;
+            tasks.forEach(t => {
+                if (t.completed || t.reminded) return;
+                const due = new Date(t.deadline);
+                const diff = due - now;
+                // Trigger if within 15 mins (and not overdue by hours)
+                if (diff <= 15 * 60000 && diff > -60000 * 60) {
+                    new Notification("Task Reminder", { body: `"${t.title}" is due soon!` });
+                    t.reminded = true;
+                    changed = true;
+                }
+            });
+            if (changed) saveAndRender();
+        }
+    </script>
+</body>
+
+</html>
